@@ -41,5 +41,4 @@ void clear_flag(void);
 
 void led_print_frame(void*);
 void clear_led_states(void);
-void next_row(void*);
-void activate_platform(void*);
+void update_state_with_platforms(void);

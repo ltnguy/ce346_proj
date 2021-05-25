@@ -1,0 +1,11 @@
+#pragma once
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+
+void platform_init(void);
+void next_row(void*);
+void activate_platform(void*);
+void randomize_platform(int i);
+

@@ -11,25 +11,17 @@
 #include "led_matrix.h"
 #include "font.h"
 #include "microbit_v2.h"
+#include "platform.h"
 
 //defining timers
 APP_TIMER_DEF(my_timer_1);
 //APP_TIMER_DEF(my_timer_2);
-APP_TIMER_DEF(my_timer_3);
-APP_TIMER_DEF(my_timer_4);
+
 
 //Global variable for led state
 bool led_state[5][5];    //2D matrix for the state of each LED
 uint8_t current_row;     //variable to keep track of current row being displayed
 
-
-//struct for platform
-struct platform_s{
-  bool state;
-  uint8_t size;
-  uint8_t row;
-  uint8_t offset;
-} my_platform_vector[5];
 
 //global variable for csa
 bool flag; 
@@ -92,15 +84,6 @@ void led_matrix_init(void) {
   my_string_print.size = strlen(my_string_print.sentence);
   my_string_print.initial_state = true;
 
-
-  //initialize platform vector
-  for (int i = 0; i<5; i++)
-    {
-      my_platform_vector[i].state = false;
-      my_platform_vector[i].row = 0;
-      my_platform_vector[i].size = 3;
-      my_platform_vector[i].offset = 1;
-    }
   
   // initialize timer(s) (Part 3 and onwards) and start it
   //    First argument is a pointer to the app timer
@@ -114,53 +97,13 @@ void led_matrix_init(void) {
   app_timer_create(&my_timer_2, APP_TIMER_MODE_REPEATED, increment_index);
   app_timer_start(my_timer_2, 30000, NULL);
   */
-
-  //timer to cause the platforms to fall
-  app_timer_create(&my_timer_3, APP_TIMER_MODE_REPEATED, next_row);
-  app_timer_start(my_timer_3, 25000, NULL);
-
-  //timer to activate platforms
-  app_timer_create(&my_timer_4, APP_TIMER_MODE_REPEATED, activate_platform);
-  app_timer_start(my_timer_4, 70000, NULL);
   
-  
+  platform_init();
   // set default state for the LED display (Part 4 and onwards)
 }
 
 
 ///final
-
-void activate_platform(void* _unused)
-{
-  for (int i = 0; i<5; i++)
-    {
-      if (my_platform_vector[i].state == false)
-	{
-	  my_platform_vector[i].state = true;
-	  break;
-	}
-    }
-    
-}
-
-void next_row(void* _unused)
-{
-  for (int i = 0; i<5; i++)
-    {
-      if (my_platform_vector[i].state == true)
-	{
-	    if (my_platform_vector[i].row == 4)
-	      {
-		my_platform_vector[i].row = 0;
-		my_platform_vector[i].state = false;
-	      }
-	    else
-	      {
-		my_platform_vector[i].row++;
-	      }
-	}
-    }
-}
 
 //Function that clear the led states to reset the screen
 void clear_led_states(void)
@@ -174,17 +117,18 @@ void clear_led_states(void)
     }
 }
 
-
-void led_print_frame(void* _unused)
+void update_state_with_platforms(void)
 {
-  clear_led_states();
+  uint8_t row;
+  uint8_t start_index;
+  uint8_t end_index;
   
   for (int i = 0; i<5; i++){
     if (my_platform_vector[i].state == true)
       {
-	uint8_t row = my_platform_vector[i].row;
-	uint8_t start_index = my_platform_vector[i].offset;
-	uint8_t end_index = my_platform_vector[i].size + start_index - 1;
+	row = my_platform_vector[i].row;
+	start_index = my_platform_vector[i].offset;
+	end_index = my_platform_vector[i].size + start_index - 1;
 	for (int j = 0; j < 5; j++)
 	  {
 	    if ((j >= start_index) && (j<= end_index))
@@ -194,6 +138,13 @@ void led_print_frame(void* _unused)
 	  }
       }
   }
+}
+
+
+void led_print_frame(void* _unused)
+{
+  clear_led_states();
+  update_state_with_platforms();
   
   if (current_row == 0)
     {
