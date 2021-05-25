@@ -25,12 +25,11 @@ uint8_t current_row;     //variable to keep track of current row being displayed
 
 //struct for platform
 struct platform_s{
-  //bool platform[5];
   bool state;
   uint8_t size;
   uint8_t row;
   uint8_t offset;
-}
+} my_platform_vector[5];
 
 //global variable for csa
 bool flag; 
@@ -95,7 +94,6 @@ void led_matrix_init(void) {
 
 
   //initialize platform vector
-  platform_s my_platform_vector[5];
   for (int i = 0; i<5; i++)
     {
       my_platform_vector[i].state = false;
@@ -119,11 +117,11 @@ void led_matrix_init(void) {
 
   //timer to cause the platforms to fall
   app_timer_create(&my_timer_3, APP_TIMER_MODE_REPEATED, next_row);
-  app_timer_start(my_timer_3, 30000, NULL);
+  app_timer_start(my_timer_3, 25000, NULL);
 
   //timer to activate platforms
   app_timer_create(&my_timer_4, APP_TIMER_MODE_REPEATED, activate_platform);
-  app_timer_state(my_timer_4, 60000, NULL)
+  app_timer_start(my_timer_4, 70000, NULL);
   
   
   // set default state for the LED display (Part 4 and onwards)
@@ -147,16 +145,21 @@ void activate_platform(void* _unused)
 
 void next_row(void* _unused)
 {
-  
-  if (my_platform_s.row == 4)
+  for (int i = 0; i<5; i++)
     {
-      my_platform_s.row = 0;
+      if (my_platform_vector[i].state == true)
+	{
+	    if (my_platform_vector[i].row == 4)
+	      {
+		my_platform_vector[i].row = 0;
+		my_platform_vector[i].state = false;
+	      }
+	    else
+	      {
+		my_platform_vector[i].row++;
+	      }
+	}
     }
-  else
-    {
-      my_platform_s.row++;
-    }
-    
 }
 
 //Function that clear the led states to reset the screen
@@ -176,19 +179,21 @@ void led_print_frame(void* _unused)
 {
   clear_led_states();
   
-  my_platform_s.platform[0] = true;
-  my_platform_s.platform[1] = true;
-  my_platform_s.platform[2] = true;
-  my_platform_s.platform[3] = false;
-  my_platform_s.platform[4] = false;
-  
-  uint8_t row = my_platform_s.row;
-  
-  for (int i = 0; i<5; i++)
-    {
-      led_state[row][i] = my_platform_s.platform[i];
-    }
-
+  for (int i = 0; i<5; i++){
+    if (my_platform_vector[i].state == true)
+      {
+	uint8_t row = my_platform_vector[i].row;
+	uint8_t start_index = my_platform_vector[i].offset;
+	uint8_t end_index = my_platform_vector[i].size + start_index - 1;
+	for (int j = 0; j < 5; j++)
+	  {
+	    if ((j >= start_index) && (j<= end_index))
+	      {
+		led_state[row][j] = true;
+	      }
+	  }
+      }
+  }
   
   if (current_row == 0)
     {
