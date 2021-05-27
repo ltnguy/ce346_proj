@@ -12,14 +12,13 @@
 #include "microbit_v2.h"
 #include "nrf_delay.h"
 
-//bool led_states[5][5] = {false};//2d matrix that holds states of LEDs
-bool led_states[5][5] = {
-  {true, false, false, false, true},
-  {false, true, false, true, false},
-  {false, false, true, false, false},
-  {false, true, false, true, false},
-  {true, false, false, false, true},
-};
+
+//for testing purposes, initializing the location to bottom, right corner
+int my_col = 4; //holds what column the player is in
+int my_row = 4; //holds what row the player is in
+
+bool led_states[5][5] = {false};//2d matrix that holds states of LEDs
+
 int curr_row = 0; //default current row = 0
 uint32_t rows[5] = {LED_ROW1, LED_ROW2, LED_ROW3, LED_ROW4, LED_ROW5};
 uint32_t cols[5] = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5};
@@ -29,26 +28,58 @@ int curr_char;
 char *mystring;
 bool string_done = false;
 
-//App Timer Callback Function for part 3
-//static void part3_cb(void* unused){
-//  nrf_gpio_pin_toggle(LED_ROW1);
-//  nrf_gpio_pin_toggle(LED_ROW2);
-//  nrf_gpio_pin_toggle(LED_ROW3);
-//  nrf_gpio_pin_toggle(LED_ROW4);
-//  nrf_gpio_pin_toggle(LED_ROW5);
-//  nrf_gpio_pin_toggle(LED_COL2);
-//  nrf_gpio_pin_toggle(LED_COL4);
-//}
 
+//set the location of the pixel "player"
+void set_location(int row, int col){
+  led_states[row][col] = true;
+}
+
+//this basically checks to see what button is pressed
+// if a is pressed, player location moves left
+// if b is pressed, player location right
+void read_button(){
+  //check the buttons
+  if (nrf_gpio_pin_read(BTN_A) == 0){ //if button A is pressed
+    if (my_col == 0){
+      //set location to column 4 if already at 1
+      my_col = 4; 
+    }
+    else{
+      //set location to column-1 if not 
+      my_col = my_col - 1; 
+    }
+  }
+  if (nrf_gpio_pin_read(BTN_B) == 0){
+    if(my_col == 4){
+      my_col = 0;
+    }
+    else{
+      my_col = my_col + 1;
+    }
+  }
+}
+//callback function to display character on LED matrix
+static void display_character(void* unused){
+  nrf_gpio_pin_write(my_row,1);
+  nrf_gpio_pin_write(my_col,0);
+}
+//callback function to change the location of character from button presses
+static void move_character(void* unused){
+  read_button();
+  set_location(my_row,my_col);
+}
+
+
+/* -----------------old stuff from here and beyond----------------------
 
 //App Timer CallBack Function for part 4
-static void part4_cb(void* unused){
+//static void part4_cb(void* unused){
 // first, i want to inactivate the current row
-  uint32_t row = rows[curr_row]; // get current row
-  nrf_gpio_pin_write(row,0);
+ // uint32_t row = rows[curr_row]; // get current row
+  //nrf_gpio_pin_write(row,0);
   //printf("getting row: %ul\n", row);
-  if (curr_row < 4){
-    curr_row = curr_row + 1;
+ // if (curr_row < 4){
+   // curr_row = curr_row + 1;
   }
   else{
     curr_row = 0;
@@ -85,6 +116,7 @@ static void part6_cb(void* unused){ //this cb updates the next letter
     string_done = true;
   }
 }
+*/
 
 void led_matrix_init(void) {
   // initialize row pins
@@ -100,32 +132,30 @@ void led_matrix_init(void) {
   nrf_gpio_pin_dir_set(LED_COL4, NRF_GPIO_PIN_DIR_OUTPUT);
   nrf_gpio_pin_dir_set(LED_COL5, NRF_GPIO_PIN_DIR_OUTPUT);
   // set default values for pins
-  nrf_gpio_pin_clear(LED_COL1);
-  nrf_gpio_pin_clear(LED_COL2);
-  nrf_gpio_pin_clear(LED_COL3);
-  nrf_gpio_pin_clear(LED_COL4);
-  nrf_gpio_pin_clear(LED_COL5);
+  nrf_gpio_pin_set(LED_COL1);
+  nrf_gpio_pin_set(LED_COL2);
+  nrf_gpio_pin_set(LED_COL3);
+  nrf_gpio_pin_set(LED_COL4);
+  nrf_gpio_pin_set(LED_COL5);
   nrf_gpio_pin_clear(LED_ROW1);
   nrf_gpio_pin_clear(LED_ROW2);
   nrf_gpio_pin_clear(LED_ROW3);
   nrf_gpio_pin_clear(LED_ROW4);
   nrf_gpio_pin_clear(LED_ROW5);
 
-  //Part2 testing
-  //nrf_gpio_pin_toggle(LED_ROW3);
-  //nrf_delay_ms(2000);
-  //nrf_gpio_pin_toggle(LED_COL3);
-  // initialize timer(s) (Part 3 and onwards)
-  // set default state for the LED display (Part 4 and onwards)
-  // create way of storing LED states 
+  nrf_gpio_pin_dir_set(BTN_A,NRF_GPIO_PIN_DIR_INPUT); //config button A P0.14
+  nrf_gpio_pin_dir_set(BTN_B,NRF_GPIO_PIN_DIR_INPUT); //config button B P0.23
 
   app_timer_init();
-  app_timer_create(&timer_1, APP_TIMER_MODE_REPEATED, part4_cb);
-  app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,part6_cb);
+  app_timer_create(&timer_1, APP_TIMER_MODE_REPEATED,display_character);
+  app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,move_character);
   app_timer_start(timer_1, 65, NULL);
 
 }
 
+
+/*
+// old stuff from the lab
 void map_char(char c){
   // get char ascii value
   int c_num = c;
@@ -142,15 +172,6 @@ void map_char(char c){
   set_states(2,row3);
   set_states(3,row4);
   set_states(4,row5);
-
- //   for (int r=0; r<5; r++)
- // {
-  //  for(int columns=0; columns<5; columns++)
-  //  {
-//         printf("%d     ", led_states[r][columns]);
- //   }
- //   printf("\n");
-//  }
 }
 
 void set_states(int led_states_row, uint8_t row){
@@ -172,3 +193,4 @@ void iterate_string(char* string){
   app_timer_stop(timer_2);
   string_done = false;
 }
+*/
