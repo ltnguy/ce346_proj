@@ -31,6 +31,7 @@ int curr_char;
 char *mystring;
 bool string_done = false;
 
+// this is a comment to test branching
 
 ////////////////////////////////////////////////////////////////////////////
 //haolan's addition
