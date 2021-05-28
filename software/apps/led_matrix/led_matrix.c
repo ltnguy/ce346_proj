@@ -58,11 +58,13 @@ void read_button(){
     }
   }
 }
+/*
 //callback function to display character on LED matrix
 static void display_character(void* unused){
   nrf_gpio_pin_write(my_row,1);
   nrf_gpio_pin_write(my_col,0);
 }
+*/
 //callback function to change the location of character from button presses
 static void move_character(void* unused){
   read_button();
@@ -70,16 +72,15 @@ static void move_character(void* unused){
 }
 
 
-/* -----------------old stuff from here and beyond----------------------
 
 //App Timer CallBack Function for part 4
-//static void part4_cb(void* unused){
+static void part4_cb(void* unused){
 // first, i want to inactivate the current row
- // uint32_t row = rows[curr_row]; // get current row
-  //nrf_gpio_pin_write(row,0);
-  //printf("getting row: %ul\n", row);
- // if (curr_row < 4){
-   // curr_row = curr_row + 1;
+  uint32_t row = rows[curr_row]; // get current row
+  nrf_gpio_pin_write(row,0);
+  printf("getting row: %ul\n", row);
+  if (curr_row < 4){
+    curr_row = curr_row + 1;
   }
   else{
     curr_row = 0;
@@ -104,6 +105,7 @@ static void move_character(void* unused){
   row = rows[curr_row]; //get the next LED_ROW from LED_ROW array
   nrf_gpio_pin_write(row,1); //enable that row (make high)
 }
+/* -----------------old stuff from here and beyond----------------------
 
 static void part6_cb(void* unused){ //this cb updates the next letter
   printf("second callback called");
@@ -132,11 +134,11 @@ void led_matrix_init(void) {
   nrf_gpio_pin_dir_set(LED_COL4, NRF_GPIO_PIN_DIR_OUTPUT);
   nrf_gpio_pin_dir_set(LED_COL5, NRF_GPIO_PIN_DIR_OUTPUT);
   // set default values for pins
-  nrf_gpio_pin_set(LED_COL1);
-  nrf_gpio_pin_set(LED_COL2);
-  nrf_gpio_pin_set(LED_COL3);
-  nrf_gpio_pin_set(LED_COL4);
-  nrf_gpio_pin_set(LED_COL5);
+  nrf_gpio_pin_clear(LED_COL1);
+  nrf_gpio_pin_clear(LED_COL2);
+  nrf_gpio_pin_clear(LED_COL3);
+  nrf_gpio_pin_clear(LED_COL4);
+  nrf_gpio_pin_clear(LED_COL5);
   nrf_gpio_pin_clear(LED_ROW1);
   nrf_gpio_pin_clear(LED_ROW2);
   nrf_gpio_pin_clear(LED_ROW3);
@@ -147,7 +149,7 @@ void led_matrix_init(void) {
   nrf_gpio_pin_dir_set(BTN_B,NRF_GPIO_PIN_DIR_INPUT); //config button B P0.23
 
   app_timer_init();
-  app_timer_create(&timer_1, APP_TIMER_MODE_REPEATED,display_character);
+  app_timer_create(&timer_1, APP_TIMER_MODE_REPEATED,part4_cb);
   app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,move_character);
   app_timer_start(timer_1, 65, NULL);
 
