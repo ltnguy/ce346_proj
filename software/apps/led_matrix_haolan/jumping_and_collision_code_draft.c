@@ -1,3 +1,4 @@
+/*
 struct character{
   int row;
   int col;
@@ -64,3 +65,5 @@ void detect_colision()
 	}
     }
 }
+
+*/
