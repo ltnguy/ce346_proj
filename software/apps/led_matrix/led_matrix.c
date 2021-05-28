@@ -11,6 +11,7 @@
 #include "font.h"
 #include "microbit_v2.h"
 #include "nrf_delay.h"
+#include "platform.h"
 
 
 //for testing purposes, initializing the location to bottom, right corner
@@ -22,11 +23,55 @@ bool led_states[5][5] = {false};//2d matrix that holds states of LEDs
 int curr_row = 0; //default current row = 0
 uint32_t rows[5] = {LED_ROW1, LED_ROW2, LED_ROW3, LED_ROW4, LED_ROW5};
 uint32_t cols[5] = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5};
-APP_TIMER_DEF(timer_1); // create global var timer, display char
-APP_TIMER_DEF(timer_2); // display which row to be activated?
+
+APP_TIMER_DEF(display_screen); // create global var timer, display char
+//APP_TIMER_DEF(timer_2); // display which row to be activated?
+
 int curr_char;
 char *mystring;
 bool string_done = false;
+
+
+////////////////////////////////////////////////////////////////////////////
+//haolan's addition
+////////////////////////////////////////////////////////////////////////////
+
+//Function that clear the led states to reset the screen
+void clear_led_states(void)
+{
+    for (int i = 0; i < 5; i++)
+    {
+      for (int j = 0; j < 5; j++)
+	{
+	  led_states[i][j] = false; 
+	}
+    }
+}
+
+void update_state_with_platforms(void)
+{
+  uint8_t row;
+  uint8_t start_index;
+  uint8_t end_index;
+  
+  for (int i = 0; i<3; i++){
+    if (my_platform_vector[i].state == true)
+      {
+	row = my_platform_vector[i].row;
+	start_index = my_platform_vector[i].offset;
+	end_index = my_platform_vector[i].size + start_index - 1;
+	for (int j = 0; j < 5; j++)
+	  {
+	    if ((j >= start_index) && (j<= end_index))
+	      {
+		led_states[row][j] = true;
+	      }
+	  }
+      }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////
 
 
 //set the location of the pixel "player"
@@ -75,6 +120,13 @@ static void move_character(void* unused){
 
 //App Timer CallBack Function for part 4
 static void part4_cb(void* unused){
+
+  clear_led_states();
+  update_state_with_platforms();
+  
+
+  //Below is the code to draw
+  
 // first, i want to inactivate the current row
   uint32_t row = rows[curr_row]; // get current row
   nrf_gpio_pin_write(row,0);
@@ -85,9 +137,11 @@ static void part4_cb(void* unused){
   else{
     curr_row = 0;
   }//row (turn it off)
+
+  uint32_t col;
 // change column pin states:
   for (int i = 0; i < 5; i = i+1){
-    uint32_t col = cols[i]; //get the LED_COL from the col array
+    col = cols[i]; //get the LED_COL from the col array
     //printf("getting col: %ul\n", col);
     if (led_states[curr_row][i] == true){ 
      // get element from LED states array for given row
@@ -149,10 +203,12 @@ void led_matrix_init(void) {
   nrf_gpio_pin_dir_set(BTN_B,NRF_GPIO_PIN_DIR_INPUT); //config button B P0.23
 
   app_timer_init();
-  app_timer_create(&timer_1, APP_TIMER_MODE_REPEATED,part4_cb);
-  app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,move_character);
-  app_timer_start(timer_1, 65, NULL);
+  app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
+  //app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,move_character);
+  app_timer_start(display_screen, 65, NULL);
 
+  //initialize the platform
+  platform_init();
 }
 
 

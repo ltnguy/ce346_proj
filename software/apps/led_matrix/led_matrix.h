@@ -17,3 +17,8 @@ static void move_character(void* unused);
 //void iterate_string(char* string);
 void set_location(int row, int col);
 void read_button();
+
+
+//Haolan's additions
+void clear_led_states(void);
+void update_state_with_platforms(void);

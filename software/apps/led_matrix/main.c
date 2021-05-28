@@ -16,6 +16,8 @@ int main(void) {
   
   set_location(4,4);
   led_matrix_init();
+  rng_init();
+  
   // call other functions here
 
 
