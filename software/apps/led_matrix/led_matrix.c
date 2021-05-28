@@ -12,11 +12,9 @@
 #include "microbit_v2.h"
 #include "nrf_delay.h"
 #include "platform.h"
+#include "char.h"
 
 
-//for testing purposes, initializing the location to bottom, right corner
-int my_col = 4; //holds what column the player is in
-int my_row = 4; //holds what row the player is in
 
 bool led_states[5][5] = {false};//2d matrix that holds states of LEDs
 
@@ -78,43 +76,7 @@ void update_state_with_platforms(void)
 void set_location(int row, int col){
   led_states[row][col] = true;
 }
-
-//this basically checks to see what button is pressed
-// if a is pressed, player location moves left
-// if b is pressed, player location right
-void read_button(){
-  //check the buttons
-  if (nrf_gpio_pin_read(BTN_A) == 0){ //if button A is pressed
-    if (my_col == 0){
-      //set location to column 4 if already at 1
-      my_col = 4; 
-    }
-    else{
-      //set location to column-1 if not 
-      my_col = my_col - 1; 
-    }
-  }
-  if (nrf_gpio_pin_read(BTN_B) == 0){
-    if(my_col == 4){
-      my_col = 0;
-    }
-    else{
-      my_col = my_col + 1;
-    }
-  }
-}
-/*
-//callback function to display character on LED matrix
-static void display_character(void* unused){
-  nrf_gpio_pin_write(my_row,1);
-  nrf_gpio_pin_write(my_col,0);
-}
-*/
-//callback function to change the location of character from button presses
-static void move_character(void* unused){
-  read_button();
-  set_location(my_row,my_col);
-}
+////////////////////////////////////////////
 
 
 
@@ -123,7 +85,7 @@ static void part4_cb(void* unused){
 
   clear_led_states();
   update_state_with_platforms();
-  
+  set_location(mychar.row, mychar.col);
 
   //Below is the code to draw
   
@@ -209,6 +171,7 @@ void led_matrix_init(void) {
 
   //initialize the platform
   platform_init();
+  init_char();
 }
 
 
