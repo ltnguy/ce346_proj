@@ -14,3 +14,5 @@ struct character{
 
 static void move_character(void* unused);
 void read_button();
+void update_char_y(void* _unused);
+void init_char();

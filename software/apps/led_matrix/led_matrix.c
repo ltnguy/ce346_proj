@@ -69,6 +69,28 @@ void update_state_with_platforms(void)
   }
 }
 
+void detect_colision()
+{
+  if (led_states[mychar.row][mychar.col] == true)
+    {
+      if (mychar.blocks_to_jump == 0)
+	{
+	  mychar.blocks_to_jump = 2;
+	}
+    }
+}
+
+//this function is called everytime the screen is drawn, along with update_platforms() and clear_screen()
+//the screen should clear first, and then the led_states should be updated with the platform locations, and then we call this function
+//probably should be called in the main callback function that draws the screen
+void update_led_states_with_char_pos(void)
+{
+  if (mychar.state == true)
+    {
+      detect_colision();
+      led_states[mychar.row][mychar.col] = true;
+    }
+}
 ////////////////////////////////////////////////////////////////////////////
 
 
@@ -85,14 +107,15 @@ static void part4_cb(void* unused){
 
   clear_led_states();
   update_state_with_platforms();
-  set_location(mychar.row, mychar.col);
+  //set_location(mychar.row, mychar.col);
+  update_led_states_with_char_pos();
 
   //Below is the code to draw
   
 // first, i want to inactivate the current row
   uint32_t row = rows[curr_row]; // get current row
   nrf_gpio_pin_write(row,0);
-  printf("getting row: %ul\n", row);
+  //printf("getting row: %ul\n", row);
   if (curr_row < 4){
     curr_row = curr_row + 1;
   }

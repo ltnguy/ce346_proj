@@ -11,7 +11,7 @@
 #include "char.h"
 
 
-
+APP_TIMER_DEF(char_y);
 
 void init_char(void)
 {
@@ -20,6 +20,10 @@ void init_char(void)
   mychar.state = true;
   mychar.blocks_to_jump = 2;
 
+  
+  //timer to move char in the y direction
+  app_timer_create(&char_y, APP_TIMER_MODE_REPEATED, update_char_y);
+  app_timer_start(char_y, 20000, NULL);
   
 }
 
@@ -48,6 +52,8 @@ void read_button(){
     }
   }
 }
+
+
 /*
 //callback function to display character on LED matrix
 static void display_character(void* unused){
@@ -60,3 +66,40 @@ static void move_character(void* unused){
   read_button();
   //set_location(my_row,my_col);
 }
+
+////////////////////////////////////////////////////////////////
+//up-down
+////////////////////////////////////////////////////////////////
+
+
+
+//callback for updating the character, controlled by a timer. This timer can be created anywhere, but probably in led_matrix.c
+//or char.c if a new file is created. The timer can be started in char_init()
+void update_char_y(void* _unused)
+{
+  if (mychar.state == true)
+    {
+      if (mychar.blocks_to_jump == 0)
+	{
+	  if (mychar.row == 4)
+	    {
+	      //mychar.state = 0;
+	      mychar.row = 4; //testing
+	    }
+	  else
+	    {
+	      mychar.row++;
+	    }    
+	}
+      else
+	{
+	  if (mychar.row > 0)
+	    {
+	      mychar.row--;
+	    }
+	  mychar.blocks_to_jump--;
+	}
+    }
+}
+
+
