@@ -14,7 +14,7 @@
 int main(void) {
   printf("Board started!\n");
   
-
+  set_location(4,4);
   led_matrix_init();
   // call other functions here
 
