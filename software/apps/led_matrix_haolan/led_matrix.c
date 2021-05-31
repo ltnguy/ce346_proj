@@ -17,9 +17,16 @@
 APP_TIMER_DEF(my_timer_1);
 //APP_TIMER_DEF(my_timer_2);
 
+//pwm
+uint8_t pwm_index;
+//APP_TIMER_DEF(pwm_timer);
+uint8_t duty_cycle;
+#define countertop 4
+uint8_t toggle_point;
 
 //Global variable for led state
-bool led_state[5][5];    //2D matrix for the state of each LED
+//PWM countertop of 10
+bool led_state[5][5][countertop];    //2D matrix for the state of each LED
 uint8_t current_row;     //variable to keep track of current row being displayed
 
 
@@ -64,13 +71,13 @@ void led_matrix_init(void) {
   nrf_gpio_pin_clear(LED_ROW5);
 
   //initialize led state
-  for (int i = 0; i < 5; i++)
-    {
-      for (int j = 0; j < 5; j++)
-	{
-	  led_state[i][j] = false; 
-	}
-    }
+  clear_led_states();
+
+  //set pwm index
+  pwm_index = 0;
+  duty_cycle = 25;
+  toggle_point = (duty_cycle * countertop)/100;
+
 
   //initialize current_row to begin at row 1
   current_row = 0;
@@ -91,7 +98,10 @@ void led_matrix_init(void) {
   //    Third argument is a callback function
   app_timer_init();
   app_timer_create(&my_timer_1, APP_TIMER_MODE_REPEATED, led_print_frame);
-  app_timer_start(my_timer_1, 65, NULL);
+  app_timer_start(my_timer_1, 16, NULL);
+
+  // app_timer_create(&pwm_timer, APP_TIMER_MODE_REPEATED, increment_pwm_index);
+  // app_timer_start(pwm_timer, 21, NULL);
 
   /*
   app_timer_create(&my_timer_2, APP_TIMER_MODE_REPEATED, increment_index);
@@ -105,6 +115,20 @@ void led_matrix_init(void) {
 
 ///final
 
+
+//callback for pwm_timer
+void increment_pwm_index(void)
+{
+  if (pwm_index == (countertop - 1))
+    {
+      pwm_index = 0;
+    }
+  else
+    {
+      pwm_index++;
+    }
+}
+
 //Function that clear the led states to reset the screen
 void clear_led_states(void)
 {
@@ -112,7 +136,10 @@ void clear_led_states(void)
     {
       for (int j = 0; j < 5; j++)
 	{
-	  led_state[i][j] = false; 
+	  for (int k = 0; k < countertop; k++)
+	    {
+	      led_state[i][j][k] = false;
+	    }
 	}
     }
 }
@@ -133,7 +160,17 @@ void update_state_with_platforms(void)
 	  {
 	    if ((j >= start_index) && (j<= end_index))
 	      {
-		led_state[row][j] = true;
+		for (int k = 0; k<countertop; k++)
+		  {
+		    if (k < toggle_point)
+		      {
+			led_state[row][j][k] = true;
+		      }
+		    else
+		      {
+			led_state[row][j][k] = false;
+		      }
+		  }
 	      }
 	  }
       }
@@ -215,7 +252,8 @@ void led_print_frame(void* _unused)
     {
       current_row ++;
     }
-  
+
+    increment_pwm_index();
   
 }
 
@@ -254,7 +292,7 @@ void led_print_frame(void* _unused)
 
 
 
-
+/*
 
 //clear flag
 void clear_flag(void)
@@ -302,6 +340,7 @@ void increment_index(void* _unused)
     }
 }
 
+*/
 
 //Input: row that we are currntly trying to display, and the col that we want to write too
 //Output: none
@@ -309,7 +348,7 @@ void increment_index(void* _unused)
 //if it is true, clear the corresponding col pin to display the led
 void led_write_col(uint8_t row, uint8_t col)
 {
-  bool state = led_state[row][col];
+  bool state = led_state[row][col][pwm_index];
   
   if (col == 0)
     {
@@ -368,6 +407,8 @@ void led_write_col(uint8_t row, uint8_t col)
     }
 }
 
+
+/*
 //Input: Ascii value to be printed
 //Output: None
 //State Change: print a char to the Microbit 
@@ -595,3 +636,4 @@ void update_state(uint32_t row, bool a, bool b, bool c, bool d, bool e)
       current_row ++;
     }
 }
+*/
