@@ -12,11 +12,10 @@
 #include "microbit_v2.h"
 #include "nrf_delay.h"
 #include "platform.h"
+#include "char.h"
+#include "lsm303agr.h"
 
 
-//for testing purposes, initializing the location to bottom, right corner
-int my_col = 4; //holds what column the player is in
-int my_row = 4; //holds what row the player is in
 
 bool led_states[5][5] = {false};//2d matrix that holds states of LEDs
 
@@ -25,7 +24,7 @@ uint32_t rows[5] = {LED_ROW1, LED_ROW2, LED_ROW3, LED_ROW4, LED_ROW5};
 uint32_t cols[5] = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5};
 
 APP_TIMER_DEF(display_screen); // create global var timer, display char
-//APP_TIMER_DEF(timer_2); // display which row to be activated?
+APP_TIMER_DEF(timer_2); // display which row to be activated?
 
 int curr_char;
 char *mystring;
@@ -79,43 +78,7 @@ void update_state_with_platforms(void)
 void set_location(int row, int col){
   led_states[row][col] = true;
 }
-
-//this basically checks to see what button is pressed
-// if a is pressed, player location moves left
-// if b is pressed, player location right
-void read_button(){
-  //check the buttons
-  if (nrf_gpio_pin_read(BTN_A) == 0){ //if button A is pressed
-    if (my_col == 0){
-      //set location to column 4 if already at 1
-      my_col = 4; 
-    }
-    else{
-      //set location to column-1 if not 
-      my_col = my_col - 1; 
-    }
-  }
-  if (nrf_gpio_pin_read(BTN_B) == 0){
-    if(my_col == 4){
-      my_col = 0;
-    }
-    else{
-      my_col = my_col + 1;
-    }
-  }
-}
-/*
-//callback function to display character on LED matrix
-static void display_character(void* unused){
-  nrf_gpio_pin_write(my_row,1);
-  nrf_gpio_pin_write(my_col,0);
-}
-*/
-//callback function to change the location of character from button presses
-static void move_character(void* unused){
-  read_button();
-  set_location(my_row,my_col);
-}
+////////////////////////////////////////////
 
 
 
@@ -124,14 +87,13 @@ static void part4_cb(void* unused){
 
   clear_led_states();
   update_state_with_platforms();
-  
+  set_location(mychar.row, mychar.col);
 
   //Below is the code to draw
   
 // first, i want to inactivate the current row
   uint32_t row = rows[curr_row]; // get current row
   nrf_gpio_pin_write(row,0);
-  printf("getting row: %ul\n", row);
   if (curr_row < 4){
     curr_row = curr_row + 1;
   }
@@ -200,16 +162,18 @@ void led_matrix_init(void) {
   nrf_gpio_pin_clear(LED_ROW4);
   nrf_gpio_pin_clear(LED_ROW5);
 
-  nrf_gpio_pin_dir_set(BTN_A,NRF_GPIO_PIN_DIR_INPUT); //config button A P0.14
-  nrf_gpio_pin_dir_set(BTN_B,NRF_GPIO_PIN_DIR_INPUT); //config button B P0.23
+  //nrf_gpio_pin_dir_set(BTN_A,NRF_GPIO_PIN_DIR_INPUT); //config button A P0.14
+  //nrf_gpio_pin_dir_set(BTN_B,NRF_GPIO_PIN_DIR_INPUT); //config button B P0.23
 
   app_timer_init();
   app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
-  //app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,move_character);
+  app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,check_tilt);
   app_timer_start(display_screen, 65, NULL);
 
   //initialize the platform
   platform_init();
+  init_char();
+  app_timer_start(timer_2,25000,NULL);
 }
 
 
