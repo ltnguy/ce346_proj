@@ -23,3 +23,4 @@ void clear_led_states(void);
 void update_state_with_platforms(void);
 void detect_collision(void);
 void update_led_states_with_char_pos(void);
+void increment_pwm_index(int);
