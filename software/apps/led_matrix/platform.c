@@ -82,7 +82,7 @@ void next_row(void* _unused)
 	      {
 		my_platform_vector[i].row = 0;
 		my_platform_vector[i].state = false;
-		//randomize_platform(i);
+		randomize_platform(i);
 	      }
 	    else
 	      {
