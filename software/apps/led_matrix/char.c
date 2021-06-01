@@ -52,27 +52,32 @@ void check_tilt(void* unused){
       lsm303agr_measurement_t accel = lsm303agr_read_accelerometer();
       float tilt_angle = get_theta(accel);
       //printf("this is my tilt angle: %f\n", tilt_angle);
-      if (tilt_angle < -30){ //move char left
-	if (mychar.col == 0){
-	  //set location to column 4 if already at 1
-	  mychar.col = 4; 
-	}
-	else{
-	  //set location to column-1 if not 
-	  mychar.col = mychar.col - 1; 
-	}
-      }
-      if (tilt_angle > 30){//move char right
-	if(mychar.col == 4){
-	  mychar.col = 0;
-	}
-	else{
-	  mychar.col = mychar.col + 1;
-	}
+      if (tilt_angle < -30)
+        { //move char left
+	        if (mychar.col == 0)
+            {
+	            //set location to column 4 if already at 1
+	            mychar.col = 4; 
+	          }
+	        else
+            {
+	            //set location to column-1 if not 
+	            mychar.col = mychar.col - 1; 
+	          }
+        }
+      if (tilt_angle > 30)
+      {//move char right
+	      if(mychar.col == 4)
+          {
+	          mychar.col = 0;
+	        }
+	      else
+          {
+	          mychar.col = mychar.col + 1;
+	        }
       }
     }
 }
-
 
 ////////////////////////////////////////////////////////////////
 //up-down
