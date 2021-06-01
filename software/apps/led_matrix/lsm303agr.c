@@ -141,6 +141,7 @@ float get_phi(lsm303agr_measurement_t accel) {
   return phi;
 }
 
+//get angle theta to measure tilt angle for the game
 float get_theta(lsm303agr_measurement_t accel)
 {
   float x = accel.x_axis;

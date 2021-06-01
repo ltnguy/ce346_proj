@@ -18,10 +18,13 @@
 APP_TIMER_DEF(timer_falling_platforms);
 APP_TIMER_DEF(timer_activate_platforms);
 
+//total_platform number
+#define total_platforms 3
+
 void platform_init(void)
 {
   //initialize platform vector
-  for (int i = 0; i<3; i++)
+  for (int i = 0; i<total_platforms; i++)
     {
       my_platform_vector[i].state = false;
       my_platform_vector[i].row = 0;
@@ -60,7 +63,7 @@ void randomize_platform(int i)
 //callback function to activate first unused platforms regularly
 void activate_platform(void* _unused)
 {
-  for (int i = 0; i<3; i++)
+  for (int i = 0; i<total_platforms; i++)
     {
       if (my_platform_vector[i].state == false)
 	{
@@ -74,12 +77,15 @@ void activate_platform(void* _unused)
 //call back function to cause the platforms to fall
 void next_row(void* _unused)
 {
-  for (int i = 0; i<3; i++)
+  for (int i = 0; i<total_platforms; i++)
     {
+      //make the platform fall if the state is on
       if (my_platform_vector[i].state == true)
 	{
 	    if (my_platform_vector[i].row == 4)
 	      {
+		//if the platform has reached the bottom, turn it off, sent it back to the top to be released again,
+		//and randomize the size and location
 		my_platform_vector[i].row = 0;
 		my_platform_vector[i].state = false;
 		randomize_platform(i);

@@ -15,25 +15,49 @@
 #include "char.h"
 #include "lsm303agr.h"
 
+//pwm global variables
+uint8_t pwm_index;
+uint8_t duty_cycle;
+#define countertop 4
+uint8_t toggle_point;
 
-
-bool led_states[5][5] = {false};//2d matrix that holds states of LEDs
+bool led_states[5][5][countertop] = {false};//3d matrix that holds states of LEDs, and pwm duty cycles
 
 int curr_row = 0; //default current row = 0
 uint32_t rows[5] = {LED_ROW1, LED_ROW2, LED_ROW3, LED_ROW4, LED_ROW5};
 uint32_t cols[5] = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5};
 
-APP_TIMER_DEF(display_screen); // create global var timer, display char
-APP_TIMER_DEF(timer_2); // display which row to be activated?
+APP_TIMER_DEF(display_screen); // timer that displays one row to the led matrix 
 
 int curr_char;
 char *mystring;
 bool string_done = false;
 
-// this is a comment to test branching
 
 ////////////////////////////////////////////////////////////////////////////
-//haolan's addition
+//pwm functions
+////////////////////////////////////////////////////////////////////////////
+
+//cycle through the duty cycles
+void increment_pwm_index(int next_row)
+{
+  //cycle through the pwm duty cycles 
+  if (pwm_index == (countertop - 1))
+    {
+      //if we reach the end of one duty cycle, print the next row
+      pwm_index = 0;
+      curr_row = next_row;
+    }
+  else
+    {
+      //continue going through the duty cycle
+      pwm_index++;
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+//platform control
 ////////////////////////////////////////////////////////////////////////////
 
 //Function that clear the led states to reset the screen
@@ -43,11 +67,15 @@ void clear_led_states(void)
     {
       for (int j = 0; j < 5; j++)
 	{
-	  led_states[i][j] = false; 
+	  for (int k = 0; k<countertop; k++)
+	    {
+	      led_states[i][j][k] = false;
+	    }
 	}
     }
 }
 
+//update led_States with platform locations
 void update_state_with_platforms(void)
 {
   uint8_t row;
@@ -55,26 +83,48 @@ void update_state_with_platforms(void)
   uint8_t end_index;
   
   for (int i = 0; i<3; i++){
+    //check if the platform is actually being displayed
     if (my_platform_vector[i].state == true)
       {
+	//get location of the platform row, start column, and end column
 	row = my_platform_vector[i].row;
 	start_index = my_platform_vector[i].offset;
 	end_index = my_platform_vector[i].size + start_index - 1;
+
+	//set the specified coordinates in led_states to true
 	for (int j = 0; j < 5; j++)
 	  {
 	    if ((j >= start_index) && (j<= end_index))
 	      {
-		led_states[row][j] = true;
+		//set the duty cycle depending on the countertop and togglepoint 
+		for (int k = 0; k<countertop; k++)
+		  {
+		    if (k < toggle_point)
+		      {
+			led_states[row][j][k] = true;
+		      }
+		    else
+		      {
+			led_states[row][j][k] = false;
+		      }
+		  }
 	      }
 	  }
       }
   }
 }
 
+//////////////////////////////////////////////////////////////////
+//character control
+//////////////////////////////////////////////////////////////////
+
 void detect_colision()
 {
-  if (led_states[mychar.row][mychar.col] == true)
+  //the first duty cycle should always be true if the led is suppose to be on, we detect the collision based on that
+  if (led_states[mychar.row][mychar.col][0] == true)
     {
+      //only if the character is falling, will colliding cause the character to jump up 2 more blocks
+      //the character will not collide on the way up through a platform, just like doodle jump
       if (mychar.blocks_to_jump == 0)
 	{
 	  mychar.blocks_to_jump = 2;
@@ -87,51 +137,54 @@ void detect_colision()
 //probably should be called in the main callback function that draws the screen
 void update_led_states_with_char_pos(void)
 {
+  //if the game is still going
   if (mychar.state == true)
     {
+      //check for collisions
       detect_colision();
-      led_states[mychar.row][mychar.col] = true;
+      //override led_states each time to give the character maximum brightness
+      //100% duty cycle
+      for (int k = 0; k<countertop; k++)
+	{
+	  led_states[mychar.row][mychar.col][k] = true;
+	}
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////
+//main callback function
 ////////////////////////////////////////////////////////////////////////////
 
+//main callback to display the led screen each time
+void part4_cb(void* unused){
 
-//set the location of the pixel "player"
-void set_location(int row, int col){
-  led_states[row][col] = true;
-}
-////////////////////////////////////////////
-
-
-
-//App Timer CallBack Function for part 4
-static void part4_cb(void* unused){
-
+  //clear the states, then update the led_sates with platform and character positions
   clear_led_states();
   update_state_with_platforms();
-  //set_location(mychar.row, mychar.col);
   update_led_states_with_char_pos();
 
   //Below is the code to draw
-  
-// first, i want to inactivate the current row
+  // first, i want to inactivate the current row
   uint32_t row = rows[curr_row]; // get current row
   nrf_gpio_pin_write(row,0);
-  
+
+  //temporary variable to access the next_row without changing rows
+  //we only change to the next row after on duty cycle is complete for one row
+  int next_row;
   if (curr_row < 4){
-    curr_row = curr_row + 1;
+    next_row = curr_row + 1;
   }
   else{
-    curr_row = 0;
-  }//row (turn it off)
+    next_row = 0;
+  }
 
   uint32_t col;
-// change column pin states:
+  // change column pin states:
   for (int i = 0; i < 5; i = i+1){
     col = cols[i]; //get the LED_COL from the col array
     //printf("getting col: %ul\n", col);
-    if (led_states[curr_row][i] == true){ 
-     // get element from LED states array for given row
+    if (led_states[next_row][i][pwm_index] == true){ 
+     // get element from LED states array for given row and duty cycle
       //if it's true, we want the light to stay on
       nrf_gpio_pin_write(col,0);
      // printf("LED ON\n");
@@ -142,9 +195,13 @@ static void part4_cb(void* unused){
       //printf("LED OFF\n");
     }
   }
-// enable next row
-  row = rows[curr_row]; //get the next LED_ROW from LED_ROW array
+  
+  // enable next row
+  row = rows[next_row]; //get the next LED_ROW from LED_ROW array
   nrf_gpio_pin_write(row,1); //enable that row (make high)
+
+  //update pwm and row (if neccessary)
+  increment_pwm_index(next_row);
 }
 /* -----------------old stuff from here and beyond----------------------
 
@@ -186,18 +243,18 @@ void led_matrix_init(void) {
   nrf_gpio_pin_clear(LED_ROW4);
   nrf_gpio_pin_clear(LED_ROW5);
 
-  //nrf_gpio_pin_dir_set(BTN_A,NRF_GPIO_PIN_DIR_INPUT); //config button A P0.14
-  //nrf_gpio_pin_dir_set(BTN_B,NRF_GPIO_PIN_DIR_INPUT); //config button B P0.23
+  //initialize pwm global var
+  pwm_index = 0;
+  duty_cycle = 25;
+  toggle_point = (duty_cycle * countertop)/100;
 
   app_timer_init();
   app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
-  app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,check_tilt);
-  app_timer_start(display_screen, 65, NULL);
+  app_timer_start(display_screen, 16, NULL);
 
-  //initialize the platform
+  //initialize the platform and the char (starting their respective timers)
   platform_init();
   init_char();
-  app_timer_start(timer_2,25000,NULL);
 }
 
 
