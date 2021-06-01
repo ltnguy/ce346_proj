@@ -13,6 +13,7 @@
 #include "nrf_delay.h"
 #include "platform.h"
 #include "char.h"
+#include "lsm303agr.h"
 
 
 
@@ -23,12 +24,13 @@ uint32_t rows[5] = {LED_ROW1, LED_ROW2, LED_ROW3, LED_ROW4, LED_ROW5};
 uint32_t cols[5] = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5};
 
 APP_TIMER_DEF(display_screen); // create global var timer, display char
-//APP_TIMER_DEF(timer_2); // display which row to be activated?
+APP_TIMER_DEF(timer_2); // display which row to be activated?
 
 int curr_char;
 char *mystring;
 bool string_done = false;
 
+// this is a comment to test branching
 
 ////////////////////////////////////////////////////////////////////////////
 //haolan's addition
@@ -115,7 +117,7 @@ static void part4_cb(void* unused){
 // first, i want to inactivate the current row
   uint32_t row = rows[curr_row]; // get current row
   nrf_gpio_pin_write(row,0);
-  //printf("getting row: %ul\n", row);
+  
   if (curr_row < 4){
     curr_row = curr_row + 1;
   }
@@ -184,17 +186,18 @@ void led_matrix_init(void) {
   nrf_gpio_pin_clear(LED_ROW4);
   nrf_gpio_pin_clear(LED_ROW5);
 
-  nrf_gpio_pin_dir_set(BTN_A,NRF_GPIO_PIN_DIR_INPUT); //config button A P0.14
-  nrf_gpio_pin_dir_set(BTN_B,NRF_GPIO_PIN_DIR_INPUT); //config button B P0.23
+  //nrf_gpio_pin_dir_set(BTN_A,NRF_GPIO_PIN_DIR_INPUT); //config button A P0.14
+  //nrf_gpio_pin_dir_set(BTN_B,NRF_GPIO_PIN_DIR_INPUT); //config button B P0.23
 
   app_timer_init();
   app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
-  //app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,move_character);
+  app_timer_create(&timer_2, APP_TIMER_MODE_REPEATED,check_tilt);
   app_timer_start(display_screen, 65, NULL);
 
   //initialize the platform
   platform_init();
   init_char();
+  app_timer_start(timer_2,25000,NULL);
 }
 
 
