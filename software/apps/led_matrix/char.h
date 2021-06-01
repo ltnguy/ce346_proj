@@ -12,7 +12,9 @@ struct character{
   int blocks_to_jump;
 } mychar;
 
-static void move_character(void* unused);
+void init_char();
+void check_tilt(void* unused);
+//static void move_character(void* unused);
 void read_button();
 void update_char_y(void* _unused);
 void init_char();
