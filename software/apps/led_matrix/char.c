@@ -81,13 +81,6 @@ void read_button(){
 }
 
 
-/*
-//callback function to change the location of character from button presses
-static void move_character(void* unused){
-  read_button();
-  //set_location(my_row,my_col);
-}
-
 
 ////////////////////////////////////////////////////////////////
 //up-down
