@@ -29,7 +29,8 @@ int curr_row_string = 0;
 uint32_t rows[5] = {LED_ROW1, LED_ROW2, LED_ROW3, LED_ROW4, LED_ROW5};
 uint32_t cols[5] = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5};
 
-APP_TIMER_DEF(display_screen); // timer that displays one row to the led matrix 
+//moved this to platform.c
+//APP_TIMER_DEF(display_screen); // timer that displays one row to the led matrix 
 APP_TIMER_DEF(display_string); //timer that displays the gameplay strings
 APP_TIMER_DEF(button_check); //timer that runs to check if a button is pressed
 
@@ -186,17 +187,14 @@ void part4_cb(void* unused){
   // change column pin states:
   for (int i = 0; i < 5; i = i+1){
     col = cols[i]; //get the LED_COL from the col array
-    //printf("getting col: %ul\n", col);
     if (led_states[next_row][i][pwm_index] == true){ 
      // get element from LED states array for given row and duty cycle
       //if it's true, we want the light to stay on
       nrf_gpio_pin_write(col,0);
-     // printf("LED ON\n");
     }
     else{
       //if the column is false, set it to 1
       nrf_gpio_pin_write(col, 1);
-      //printf("LED OFF\n");
     }
   }
   
@@ -223,6 +221,7 @@ void update_string(void* unused){ //this cb updates the next letter
   }
 }
 void display_ascii(void* unused){
+  //printf("display ascii callback\n");
   uint32_t row = rows[curr_row_string]; // get current row
   nrf_gpio_pin_write(row,0);
   if (curr_row_string < 4){
@@ -253,7 +252,9 @@ void display_ascii(void* unused){
 //game play functions
 ////////////////////////////////////////////////////////////////////////////
 void check_if_buttons_pressed(void* unused){
+  printf("button check callback\n");
   if ((nrf_gpio_pin_read(BTN_A) == 0) | (nrf_gpio_pin_read(BTN_B) == 0)){
+    app_timer_stop(display_string);
     platform_init();
     init_char();
     app_timer_stop(button_check);
@@ -297,11 +298,13 @@ void led_matrix_init(void) {
   app_timer_init();
   app_timer_create(&display_string, APP_TIMER_MODE_REPEATED,display_ascii);
   app_timer_create(&button_check, APP_TIMER_MODE_REPEATED,check_if_buttons_pressed);
-  app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
+  //moving this timer to platform_init too
+  //app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
   //moving this timer start to platform_init
   //app_timer_start(display_screen, 16, NULL);
-  map_char('!');
+  //map_char('!');
   app_timer_start(display_string, 65, NULL);
+  printf("did u get past the timer starting tf\n");
   iterate_string("Play Doodle Jump! Press a button to start");
   nrf_delay_ms(3000);
   app_timer_start(button_check,32678,NULL);
@@ -318,7 +321,6 @@ void led_matrix_init(void) {
 void map_char(char c){
   // get char ascii value
   int c_num = c;
-  printf("%d\n",c_num);
   // get hex values for each LED row
   uint8_t row1 = font[c_num][0];
   uint8_t row2 = font[c_num][1];
@@ -343,14 +345,17 @@ void set_states(int led_states_row, uint8_t row){
 
 
 void iterate_string(char* string){
+  printf("iterate string\n");
   mystring = string;
   curr_char = 0;
   app_timer_start(update_string,32768,NULL);
   while (!string_done){
-    //printf("reading string");
+    //printf("still printing");
   }
+  printf("im done\n");
   app_timer_stop(update_string);
   string_done = false;
+
 }
 
 

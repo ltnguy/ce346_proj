@@ -14,6 +14,8 @@ void part4_cb(void* unused);
 void update_string(void* unused);
 //callback to display character from lab
 void display_ascii(void* unused);
+//callback to check if button pressed
+void check_if_buttons_pressed(void* unused);
 
 //legacy
 //static void part6_cb(void* unused);
