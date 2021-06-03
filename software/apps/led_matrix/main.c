@@ -19,7 +19,7 @@ NRF_TWI_MNGR_DEF(twi_mngr_instance, 1, 0);
 
 int main(void) {
   printf("Board started!\n");
-  map_char('a');
+  map_char('!');
   //initialize led_matrix and rng peripheral
   led_matrix_init();
   rng_init();

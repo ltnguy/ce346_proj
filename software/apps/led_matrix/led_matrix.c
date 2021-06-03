@@ -32,6 +32,7 @@ uint32_t cols[5] = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5};
 //moved this to platform.c
 //APP_TIMER_DEF(display_screen); // timer that displays one row to the led matrix 
 APP_TIMER_DEF(display_string); //timer that displays the gameplay strings
+APP_TIMER_DEF(update_ascii); //timer that updates to the next ascii character
 APP_TIMER_DEF(button_check); //timer that runs to check if a button is pressed
 
 int curr_char;
@@ -297,6 +298,7 @@ void led_matrix_init(void) {
 
   app_timer_init();
   app_timer_create(&display_string, APP_TIMER_MODE_REPEATED,display_ascii);
+  app_timer_create(&update_ascii,APP_TIMER_MODE_REPEATED,update_string);
   app_timer_create(&button_check, APP_TIMER_MODE_REPEATED,check_if_buttons_pressed);
   //moving this timer to platform_init too
   //app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
@@ -304,10 +306,9 @@ void led_matrix_init(void) {
   //app_timer_start(display_screen, 16, NULL);
   //map_char('!');
   app_timer_start(display_string, 65, NULL);
-  printf("did u get past the timer starting tf\n");
-  iterate_string("Play Doodle Jump! Press a button to start");
-  nrf_delay_ms(3000);
-  app_timer_start(button_check,32678,NULL);
+  iterate_string("Play Doodle Jump! Press a button to start.");
+  printf("starting button_check timer\n");
+  app_timer_start(button_check,100,NULL);
 
 
   //initialize the platform and the char (starting their respective timers)
@@ -345,17 +346,14 @@ void set_states(int led_states_row, uint8_t row){
 
 
 void iterate_string(char* string){
-  printf("iterate string\n");
   mystring = string;
   curr_char = 0;
-  app_timer_start(update_string,32768,NULL);
+  app_timer_start(update_ascii,32768/5,NULL);
   while (!string_done){
     //printf("still printing");
   }
-  printf("im done\n");
-  app_timer_stop(update_string);
+  app_timer_stop(update_ascii);
   string_done = false;
-
 }
 
 
