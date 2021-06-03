@@ -23,11 +23,14 @@ uint8_t toggle_point;
 
 bool led_states[5][5][countertop] = {false};//3d matrix that holds states of LEDs, and pwm duty cycles
 
+bool led_states_string[5][5] = {false};
 int curr_row = 0; //default current row = 0
 uint32_t rows[5] = {LED_ROW1, LED_ROW2, LED_ROW3, LED_ROW4, LED_ROW5};
 uint32_t cols[5] = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5};
 
 APP_TIMER_DEF(display_screen); // timer that displays one row to the led matrix 
+APP_TIMER_DEF(display_string); //timer that displays the gameplay strings
+APP_TIMER_DEF(button_check); //timer that runs to check if a button is pressed
 
 int curr_char;
 char *mystring;
@@ -203,10 +206,12 @@ void part4_cb(void* unused){
   //update pwm and row (if neccessary)
   increment_pwm_index(next_row);
 }
-/* -----------------old stuff from here and beyond----------------------
 
-static void part6_cb(void* unused){ //this cb updates the next letter
-  printf("second callback called");
+/////////////////////////////////////////////////////////////////////////////
+//string functions
+////////////////////////////////////////////////////////////////////////////
+
+void update_string(void* unused){ //this cb updates the next letter
   map_char(mystring[curr_char]);
   if (curr_char < strlen(mystring)){
     curr_char = curr_char+1;
@@ -216,7 +221,43 @@ static void part6_cb(void* unused){ //this cb updates the next letter
     string_done = true;
   }
 }
-*/
+void display_ascii(void* unused){
+  uint32_t row = rows[curr_row]; // get current row
+  nrf_gpio_pin_write(row,0);
+  if (curr_row < 4){
+    curr_row = curr_row + 1;
+  }
+  else{
+    curr_row = 0;
+  }
+// change column pin states:
+  for (int i = 0; i < 5; i = i+1){
+    uint32_t col = cols[i]; //get the LED_COL from the col array
+    if (led_states_string[curr_row][i] == true){ 
+     // get element from LED states array for given row
+      //if it's true, we want the light to stay on
+      nrf_gpio_pin_write(col,0);
+    }
+    else{
+      //if the column is false, set it to 1
+      nrf_gpio_pin_write(col, 1);
+    }
+  }
+// enable next row
+  row = rows[curr_row]; //get the next LED_ROW from LED_ROW array
+  nrf_gpio_pin_write(row,1); //enable that row (make high)
+}
+
+/////////////////////////////////////////////////////////////////////////////
+//game play functions
+////////////////////////////////////////////////////////////////////////////
+void check_if_buttons_pressed(void* unused){
+  if ((nrf_gpio_pin_read(BTN_A) == 0) | (nrf_gpio_pin_read(BTN_B) == 0)){
+    platform_init();
+    init_char();
+    app_timer_stop(button_check);
+  }
+}
 
 void led_matrix_init(void) {
   // initialize row pins
@@ -248,18 +289,29 @@ void led_matrix_init(void) {
   duty_cycle = 25;
   toggle_point = (duty_cycle * countertop)/100;
 
+  //initialize buttons A and B for game play
+  nrf_gpio_pin_dir_set(BTN_A,NRF_GPIO_PIN_DIR_INPUT); //config button A P0.14
+  nrf_gpio_pin_dir_set(BTN_B,NRF_GPIO_PIN_DIR_INPUT); //config button B P0.23
+
   app_timer_init();
+  app_timer_create(&display_string, APP_TIMER_MODE_REPEATED,display_ascii);
+  app_timer_create(&button_check, APP_TIMER_MODE_REPEATED,check_if_buttons_pressed);
   app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
-  app_timer_start(display_screen, 16, NULL);
+  //moving this timer start to platform_init
+  //app_timer_start(display_screen, 16, NULL);
+  app_timer_start(display_string, 65, NULL);
+  iterate_string("Play Doodle Jump! Press a button to start");
+  app_timer_start(button_check,32678,NULL);
+
 
   //initialize the platform and the char (starting their respective timers)
-  platform_init();
-  init_char();
+
+  //moving this stuff to inside the button check stuff
+  //platform_init();
+  //init_char();
 }
 
-
-/*
-// old stuff from the lab
+// stuff from old lab that we'll use to display strings and such
 void map_char(char c){
   // get char ascii value
   int c_num = c;
@@ -279,22 +331,23 @@ void map_char(char c){
 }
 
 void set_states(int led_states_row, uint8_t row){
-  led_states[led_states_row][0] = (row)&1;
-  led_states[led_states_row][1] = (row>>1)&1;
-  led_states[led_states_row][2] = (row>>2)&1;
-  led_states[led_states_row][3] = (row>>3)&1;
-  led_states[led_states_row][4] = (row>>4)&1;
+  led_states_string[led_states_row][0] = (row)&1;
+  led_states_string[led_states_row][1] = (row>>1)&1;
+  led_states_string[led_states_row][2] = (row>>2)&1;
+  led_states_string[led_states_row][3] = (row>>3)&1;
+  led_states_string[led_states_row][4] = (row>>4)&1;
 }
 
 
 void iterate_string(char* string){
   mystring = string;
   curr_char = 0;
-  app_timer_start(timer_2,32768,NULL);
+  app_timer_start(update_string,32768,NULL);
   while (!string_done){
-    printf("reading string");
+    //printf("reading string");
   }
-  app_timer_stop(timer_2);
+  app_timer_stop(update_string);
   string_done = false;
 }
-*/
+
+

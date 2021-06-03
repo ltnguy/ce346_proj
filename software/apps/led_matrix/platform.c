@@ -34,6 +34,7 @@ void platform_init(void)
 
   //LED MATRIX INIT MUST BE CALLED FIRST!
   //timer to cause the platforms to fall
+  app_timer_start(display_screen, 16, NULL); //moved it here
   app_timer_create(&timer_falling_platforms, APP_TIMER_MODE_REPEATED, next_row);
   app_timer_start(timer_falling_platforms, 25000, NULL);
 

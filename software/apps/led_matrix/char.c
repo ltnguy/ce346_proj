@@ -52,7 +52,7 @@ void check_tilt(void* unused){
       lsm303agr_measurement_t accel = lsm303agr_read_accelerometer();
       float tilt_angle = get_theta(accel);
       //printf("this is my tilt angle: %f\n", tilt_angle);
-      if (tilt_angle < -30)
+      if (tilt_angle < -20)
         { //move char left
 	        if (mychar.col == 0)
             {
@@ -65,7 +65,7 @@ void check_tilt(void* unused){
 	            mychar.col = mychar.col - 1; 
 	          }
         }
-      if (tilt_angle > 30)
+      if (tilt_angle > 20)
       {//move char right
 	      if(mychar.col == 4)
           {

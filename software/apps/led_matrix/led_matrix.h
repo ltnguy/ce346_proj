@@ -10,6 +10,11 @@ void led_matrix_init(void);
 //main callback functions to refresh the screen
 void part4_cb(void* unused);
 
+//callback for string character update from lab
+void update_string(void* unused);
+//callback to display character from lab
+void display_ascii(void* unused);
+
 //legacy
 //static void part6_cb(void* unused);
 //static void display_character(void* unused);
