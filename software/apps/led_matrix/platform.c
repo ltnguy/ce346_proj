@@ -26,22 +26,43 @@ void platform_init(void)
   //initialize platform vector
   for (int i = 0; i<total_platforms; i++)
     {
-      my_platform_vector[i].state = false;
+      if (i == 1)
+	{
+	  my_platform_vector[i].state = true;
+	}
+      else
+	{
+	  my_platform_vector[i].state = false;
+	}
       my_platform_vector[i].row = 0;
       randomize_platform(i);
     }
 
+  //initialize score
+  score = 0;
 
   //LED MATRIX INIT MUST BE CALLED FIRST!
   //timer to cause the platforms to fall
   app_timer_create(&timer_falling_platforms, APP_TIMER_MODE_REPEATED, next_row);
-  app_timer_start(timer_falling_platforms, 25000, NULL);
+  app_timer_start(timer_falling_platforms, 26000, NULL);
 
   //timer to activate platforms
   app_timer_create(&timer_activate_platforms, APP_TIMER_MODE_REPEATED, activate_platform);
-  app_timer_start(timer_activate_platforms, 70000, NULL);
+  app_timer_start(timer_activate_platforms, 65000, NULL);
 }
 
+//stop the platform timers
+void stop_platform_timers(void)
+{
+  app_timer_stop(timer_activate_platforms);
+  app_timer_stop(timer_falling_platforms);
+
+  //stop displaying platforms
+  for(int i = 0; i<total_platforms; i++)
+    {
+      my_platform_vector[i].state = false;
+    }
+}
 
 //randomize the rows and offset of each falling platform
 void randomize_platform(int i)
@@ -89,6 +110,8 @@ void next_row(void* _unused)
 		my_platform_vector[i].row = 0;
 		my_platform_vector[i].state = false;
 		randomize_platform(i);
+		//update score
+		score += 100; 
 	      }
 	    else
 	      {

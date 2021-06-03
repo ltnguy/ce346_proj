@@ -35,21 +35,22 @@ int main(void) {
   // Initialize the LSM303AGR accelerometer/magnetometer sensor
   lsm303agr_init(&twi_mngr_instance);
 
-  
-  lsm303agr_measurement_t accel;
-  float theta;
+
+  //testing purposes
+  // lsm303agr_measurement_t accel;
+  //float theta;
   
 
 
   // loop forever
   while (1) {
+    //testing purposes
     //Acceleration
-    accel = lsm303agr_read_accelerometer();
-    printf("Accel_X: %f     Accel_Y: %f     Accel_Z: %f\n", accel.x_axis, accel.y_axis, accel.z_axis);
-    
+    // accel = lsm303agr_read_accelerometer();
+    //printf("Accel_X: %f     Accel_Y: %f     Accel_Z: %f\n", accel.x_axis, accel.y_axis, accel.z_axis);
     //Tilt
-    theta = get_theta(accel);
-    printf("Tilt angel theta: %f\n", theta);
+    //theta = get_theta(accel);
+    //printf("Tilt angel theta: %f\n", theta);
     
     nrf_delay_ms(1000);
   }
