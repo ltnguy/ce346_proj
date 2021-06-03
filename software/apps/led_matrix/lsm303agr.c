@@ -69,6 +69,7 @@ void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
   // Enable x, y and z axes
   i2c_reg_write(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_CTRL_REG1, 0x77);
 
+  /*
   // Read WHO AM I register
   // Always returns the same value if working
   uint8_t result = i2c_reg_read(LSM303AGR_ACC_ADDRESS, LSM303AGR_ACC_WHO_AM_I_REG);
@@ -81,6 +82,7 @@ void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
     {
       printf("Incorrect Result for WHO_AM_I_A\n"); 
     }
+  */
 
   // ---Initialize Magnetometer---
 
@@ -95,6 +97,7 @@ void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
   // Configure magnetometer at 100Hz, continuous mode
   i2c_reg_write(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_CFG_REG_A, 0x0C);
 
+  /*
   // Read WHO AM I register
   result = i2c_reg_read(LSM303AGR_MAG_ADDRESS, LSM303AGR_MAG_WHO_AM_I_REG);
   //TODO: check the result of the Magnetometer WHO AM I register
@@ -106,6 +109,7 @@ void lsm303agr_init(const nrf_twi_mngr_t* i2c) {
     {
       printf("Incorrect result for WHO_AM_I_M\n");
     }
+  */
 
   // ---Initialize Temperature---
 

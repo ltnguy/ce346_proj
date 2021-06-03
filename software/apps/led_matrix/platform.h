@@ -17,4 +17,7 @@ void platform_init(void);
 void next_row(void*);
 void activate_platform(void*);
 void randomize_platform(int i);
+void stop_platform_timers(void);
 
+//keep track of score
+int score;

@@ -10,6 +10,7 @@
 #include "nrf_delay.h"
 #include "char.h"
 #include "lsm303agr.h"
+#include "platform.h"
 
 //initialize timer to control how fast the character falls
 APP_TIMER_DEF(char_y);
@@ -27,11 +28,11 @@ void init_char(void)
   
   //timer to move char in the y direction
   app_timer_create(&char_y, APP_TIMER_MODE_REPEATED, update_char_y);
-  app_timer_start(char_y, 22000, NULL);
+  app_timer_start(char_y, 17000, NULL);
 
   //timer to move char in the x direction
   app_timer_create(&char_x, APP_TIMER_MODE_REPEATED,check_tilt);
-  app_timer_start(char_x, 25000, NULL);
+  app_timer_start(char_x, 13000, NULL);
 
   
   
@@ -98,8 +99,12 @@ void update_char_y(void* _unused)
 	  //if the char is past the 4th row, game is over
 	  if (mychar.row == 4)
 	    {
-	      //mychar.state = 0;
-	      mychar.row = 4; //keeping the char visible for testing
+	      mychar.state = 0;
+	      printf("Your Score is: %d\n", score);
+	      app_timer_stop(char_x);
+	      app_timer_stop(char_y);
+	      stop_platform_timers();
+	      //mychar.row = 4; //keeping the char visible for testing
 	    }
 	  else
 	    {
