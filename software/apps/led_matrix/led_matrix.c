@@ -35,8 +35,8 @@ APP_TIMER_DEF(display_string); //timer that displays the gameplay strings
 APP_TIMER_DEF(update_ascii); //timer that updates to the next ascii character
 APP_TIMER_DEF(button_check); //timer that runs to check if a button is pressed
 
-int curr_char;
-char *mystring;
+uint8_t curr_char;
+const char *mystring;
 bool string_done = false;
 
 
@@ -221,6 +221,7 @@ void update_string(void* unused){ //this cb updates the next letter
     //curr_char = 0;
     //string_done = true;
     app_timer_stop(display_string);
+    app_timer_stop(update_ascii);
     //app_timer_start(button_check,100,NULL);
   }
 }
@@ -259,9 +260,11 @@ void check_if_buttons_pressed(void* unused){
   //printf("button check callback\n");
   if ((nrf_gpio_pin_read(BTN_A) == 0) | (nrf_gpio_pin_read(BTN_B) == 0)){
     //app_timer_stop(display_string);
+    app_timer_stop(button_check);
+    app_timer_stop(update_ascii);
+    app_timer_stop(display_string);
     platform_init();
     init_char();
-    app_timer_stop(button_check);
   }
 }
 
@@ -351,7 +354,7 @@ void set_states(int led_states_row, uint8_t row){
 }
 
 
-void iterate_string(char* string){
+void iterate_string(const char* string){
   mystring = string;
   curr_char = 0;
   app_timer_start(update_ascii,32768/4,NULL);
