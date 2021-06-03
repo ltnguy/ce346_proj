@@ -216,9 +216,12 @@ void update_string(void* unused){ //this cb updates the next letter
   if (curr_char < strlen(mystring)){
     curr_char = curr_char+1;
   }
+  
   else{
-    curr_char = 0;
-    string_done = true;
+    //curr_char = 0;
+    //string_done = true;
+    app_timer_stop(display_string);
+    //app_timer_start(button_check,100,NULL);
   }
 }
 void display_ascii(void* unused){
@@ -253,9 +256,9 @@ void display_ascii(void* unused){
 //game play functions
 ////////////////////////////////////////////////////////////////////////////
 void check_if_buttons_pressed(void* unused){
-  printf("button check callback\n");
+  //printf("button check callback\n");
   if ((nrf_gpio_pin_read(BTN_A) == 0) | (nrf_gpio_pin_read(BTN_B) == 0)){
-    app_timer_stop(display_string);
+    //app_timer_stop(display_string);
     platform_init();
     init_char();
     app_timer_stop(button_check);
@@ -305,10 +308,13 @@ void led_matrix_init(void) {
   //moving this timer start to platform_init
   //app_timer_start(display_screen, 16, NULL);
   //map_char('!');
+  //app_timer_start(button_check,100,NULL);
   app_timer_start(display_string, 65, NULL);
+  
   iterate_string("Play Doodle Jump! Press a button to start.");
-  printf("starting button_check timer\n");
+  //app_timer_stop(display_string);
   app_timer_start(button_check,100,NULL);
+  //printf("starting button_check timer\n");
 
 
   //initialize the platform and the char (starting their respective timers)
@@ -348,12 +354,17 @@ void set_states(int led_states_row, uint8_t row){
 void iterate_string(char* string){
   mystring = string;
   curr_char = 0;
-  app_timer_start(update_ascii,32768/5,NULL);
-  while (!string_done){
+  app_timer_start(update_ascii,32768/4,NULL);
+  /*while (!string_done){
     //printf("still printing");
   }
+  printf('going to stop the display string timer\n');
+  //app_timer_stop(display_string);
+  //string_done = true;
   app_timer_stop(update_ascii);
-  string_done = false;
+  //app_timer_stop(display_string);
+  //app_timer_start(button_check,100,NULL);*/
+  
 }
 
 
