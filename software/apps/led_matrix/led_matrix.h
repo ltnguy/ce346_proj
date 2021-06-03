@@ -18,9 +18,10 @@ void display_ascii(void* unused);
 //legacy
 //static void part6_cb(void* unused);
 //static void display_character(void* unused);
-//void map_char(char c);
-//void set_states(int led_states_row, uint8_t row);
-//void iterate_string(char* string);
+
+void map_char(char c);
+void set_states(int led_states_row, uint8_t row);
+void iterate_string(char* string);
 
 //helper functions
 

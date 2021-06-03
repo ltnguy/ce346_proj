@@ -18,6 +18,9 @@
 APP_TIMER_DEF(timer_falling_platforms);
 APP_TIMER_DEF(timer_activate_platforms);
 
+//timer to display screen
+APP_TIMER_DEF(display_screen);
+
 //total_platform number
 #define total_platforms 3
 

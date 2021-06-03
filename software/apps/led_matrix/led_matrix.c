@@ -25,6 +25,7 @@ bool led_states[5][5][countertop] = {false};//3d matrix that holds states of LED
 
 bool led_states_string[5][5] = {false};
 int curr_row = 0; //default current row = 0
+int curr_row_string = 0;
 uint32_t rows[5] = {LED_ROW1, LED_ROW2, LED_ROW3, LED_ROW4, LED_ROW5};
 uint32_t cols[5] = {LED_COL1, LED_COL2, LED_COL3, LED_COL4, LED_COL5};
 
@@ -222,18 +223,18 @@ void update_string(void* unused){ //this cb updates the next letter
   }
 }
 void display_ascii(void* unused){
-  uint32_t row = rows[curr_row]; // get current row
+  uint32_t row = rows[curr_row_string]; // get current row
   nrf_gpio_pin_write(row,0);
-  if (curr_row < 4){
-    curr_row = curr_row + 1;
+  if (curr_row_string < 4){
+    curr_row_string = curr_row_string + 1;
   }
   else{
-    curr_row = 0;
+    curr_row_string = 0;
   }
 // change column pin states:
   for (int i = 0; i < 5; i = i+1){
     uint32_t col = cols[i]; //get the LED_COL from the col array
-    if (led_states_string[curr_row][i] == true){ 
+    if (led_states_string[curr_row_string][i] == true){ 
      // get element from LED states array for given row
       //if it's true, we want the light to stay on
       nrf_gpio_pin_write(col,0);
@@ -244,7 +245,7 @@ void display_ascii(void* unused){
     }
   }
 // enable next row
-  row = rows[curr_row]; //get the next LED_ROW from LED_ROW array
+  row = rows[curr_row_string]; //get the next LED_ROW from LED_ROW array
   nrf_gpio_pin_write(row,1); //enable that row (make high)
 }
 
@@ -299,8 +300,10 @@ void led_matrix_init(void) {
   app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
   //moving this timer start to platform_init
   //app_timer_start(display_screen, 16, NULL);
+  map_char('!');
   app_timer_start(display_string, 65, NULL);
   iterate_string("Play Doodle Jump! Press a button to start");
+  nrf_delay_ms(3000);
   app_timer_start(button_check,32678,NULL);
 
 
