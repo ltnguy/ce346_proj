@@ -10,12 +10,20 @@ void led_matrix_init(void);
 //main callback functions to refresh the screen
 void part4_cb(void* unused);
 
+//callback for string character update from lab
+void update_string(void* unused);
+//callback to display character from lab
+void display_ascii(void* unused);
+//callback to check if button pressed
+void check_if_buttons_pressed(void* unused);
+
 //legacy
 //static void part6_cb(void* unused);
 //static void display_character(void* unused);
-//void map_char(char c);
-//void set_states(int led_states_row, uint8_t row);
-//void iterate_string(char* string);
+
+void map_char(char c);
+void set_states(int led_states_row, uint8_t row);
+void iterate_string(char* string);
 
 //helper functions
 

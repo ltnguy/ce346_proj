@@ -18,6 +18,9 @@
 APP_TIMER_DEF(timer_falling_platforms);
 APP_TIMER_DEF(timer_activate_platforms);
 
+//timer to display screen
+APP_TIMER_DEF(display_screen);
+
 //total_platform number
 #define total_platforms 3
 
@@ -43,6 +46,8 @@ void platform_init(void)
 
   //LED MATRIX INIT MUST BE CALLED FIRST!
   //timer to cause the platforms to fall
+  app_timer_create(&display_screen, APP_TIMER_MODE_REPEATED,part4_cb);
+  app_timer_start(display_screen, 16, NULL); //moved it here
   app_timer_create(&timer_falling_platforms, APP_TIMER_MODE_REPEATED, next_row);
   app_timer_start(timer_falling_platforms, 26000, NULL);
 
