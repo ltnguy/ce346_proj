@@ -23,7 +23,7 @@ void check_if_buttons_pressed(void* unused);
 
 void map_char(char c);
 void set_states(int led_states_row, uint8_t row);
-void iterate_string(char* string);
+void iterate_string(const char* string);
 
 //helper functions
 
